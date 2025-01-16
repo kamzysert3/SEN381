@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veroin Blockchain Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar{
+            display: none;
+        }
+        .transaction-item {
+            transition: all 0.3s ease;
+        }
+        .transaction-item:hover {
+            transform: translateX(10px);
+        }
+        .hash-found {
+            color: #22c55e;
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+        .mining-loop {
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        .hash-attempt {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.3s ease forwards;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .break-all {
+            word-break: break-all;
+        }
+        
+        #blockchainVisual > div {
+            position: relative;
+        }
+        
+        #blockchainVisual > div::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -16px;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 12px;
+            background: #3b82f6;
+            display: none;
+        }
+        
+        #blockchainVisual > div:not(:last-child)::after {
+            display: block;
+        }
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .block-card {
+            background: rgba(31, 41, 55, 0.5);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white min-h-screen">
+    <div class="p-4 sm:p-6 md:p-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 text-blue-500">Veroin Blockchain</h1>
+            <p class="text-gray-400">Decentralized. Secure. Transparent.</p>
+        </header>
+
+        <div class="content-container space-y-8">
+            <!-- Upper Section -->
+            <div class="flex flex-col lg:flex-row gap-8 mb-8">
+                <!-- Transaction Form -->
+                <div class="lg:w-1/2">
+                    <div class="bg-gray-800/50 backdrop-blur rounded-xl shadow-xl p-6 h-full">
+                        <h2 class="text-2xl font-semibold mb-6 text-blue-400">New Transaction</h2>
+                        <form id="transactionForm" class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="block text-gray-400">Amount</label>
+                                <input type="number" id="amount" 
+                                    class="w-full p-3 bg-gray-700/50 rounded-lg border-2 border-gray-600 focus:border-blue-500 transition-colors"
+                                    required>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-400">Sender Address</label>
+                                <input type="text" id="sender" 
+                                    class="w-full p-3 bg-gray-700/50 rounded-lg border-2 border-gray-600 focus:border-blue-500 transition-colors"
+                                    required>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-gray-400">Recipient Address</label>
+                                <input type="text" id="recipient" 
+                                    class="w-full p-3 bg-gray-700/50 rounded-lg border-2 border-gray-600 focus:border-blue-500 transition-colors"
+                                    required>
+                            </div>
+                            <button type="submit" 
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                                Submit Transaction
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Blockchain Explorer -->
+                <div class="lg:w-1/2">
+                    <div class="bg-gray-800/50 backdrop-blur rounded-xl shadow-xl p-6 h-full">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-semibold text-blue-400">Blockchain Explorer</h2>
+                            <span class="text-sm text-gray-400" id="blockCount">Total Blocks: 0</span>
+                        </div>
+                        <div id="blockchainVisual" class="space-y-4 overflow-y-auto h-full pr-2">
+                            <!-- Empty state -->
+                            <div id="emptyState" class="text-center py-12">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-400">No blocks found</h3>
+                                <p class="mt-1 text-sm text-gray-500">Start by creating a transaction or mining a block.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Transactions -->
+            <div class="w-full mb-8">
+                <div class="bg-gray-800/50 backdrop-blur rounded-xl shadow-xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold text-blue-400">Pending Transactions</h2>
+                        <span id="pendingCount" class="text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">0 Pending</span>
+                    </div>
+                    <div id="pendingTransactions" class="space-y-4">
+                        <!-- Empty state for pending transactions -->
+                        <div id="emptyPending" class="text-center py-8">
+                            <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="mt-2 text-sm text-gray-400">No pending transactions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <script>
+        let isMining = false;
+
+        function updateBlockchain() {
+            fetch('/blockchain')
+                .then(response => response.json())
+                .then(data => {
+                    const blockchainVisual = document.getElementById('blockchainVisual');
+                    const emptyState = document.getElementById('emptyState');
+                    document.getElementById('blockCount').textContent = `Total Blocks: ${data.chain.length}`;
+                    
+                    // Clear previous blocks
+                    blockchainVisual.innerHTML = '';
+                    
+                    if (!data.chain || data.chain.length === 0) {
+                        // Show empty state
+                        blockchainVisual.appendChild(emptyState);
+                        return;
+                    }
+                    
+                    // Add blocks in reverse order (newest first)
+                    data.chain.slice().reverse().forEach((block, index) => {
+                        const blockElement = document.createElement('div');
+                        blockElement.className = 'bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer mb-4 border border-gray-600';
+                        
+                        const transactions = block.transactions || [];
+                        const transactionsList = transactions.map(tx => `
+                            <div class="border-t border-gray-600 mt-2 pt-2">
+                                <div class="text-xs">
+                                    <span class="text-blue-400">Amount:</span> 
+                                    <span class="text-gray-300">${tx.amount}</span>
+                                </div>
+                                <div class="text-xs truncate">
+                                    <span class="text-blue-400">From:</span> 
+                                    <span class="text-gray-300">${tx.sender || 'N/A'}</span>
+                                </div>
+                                <div class="text-xs truncate">
+                                    <span class="text-blue-400">To:</span> 
+                                    <span class="text-gray-300">${tx.recipient || 'N/A'}</span>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        blockElement.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-lg font-semibold text-blue-400">Block #${block.index}</div>
+                                    ${index === 0 ? '<span class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Latest</span>' : ''}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    Nonce: ${block.nonce}
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-400 mb-2">${new Date(block.timestamp).toLocaleString()}</div>
+                            <div class="text-sm text-gray-300 break-all">
+                                <span class="text-blue-400">Hash:</span> ${block.hash}
+                            </div>
+                            <div class="text-sm text-gray-300 break-all">
+                                <span class="text-blue-400">Previous Hash:</span> ${block.previousBlockHash}
+                            </div>
+                            <div class="mt-2">
+                                <div class="text-sm text-blue-400 mb-1">
+                                    Transactions (${transactions.length})
+                                </div>
+                                ${transactions.length ? transactionsList : 
+                                  '<div class="text-sm text-gray-400">No transactions in this block</div>'}
+                            </div>
+                        `;
+
+                        blockchainVisual.appendChild(blockElement);
+                    });
+
+                    // Update pending transactions
+                    const pendingTransactions = document.getElementById('pendingTransactions');
+                    const pendingCount = document.getElementById('pendingCount');
+                    const emptyPending = document.getElementById('emptyPending');
+                    
+                    if (!data.pendingTransactions || data.pendingTransactions.length === 0) {
+                        pendingTransactions.innerHTML = '';
+                        pendingTransactions.appendChild(emptyPending);
+                        pendingCount.textContent = '0 Pending';
+                        return;
+                    }
+
+                    pendingCount.textContent = `${data.pendingTransactions.length} Pending`;
+                    pendingTransactions.innerHTML = data.pendingTransactions.map(tx => `
+                        <div class="bg-gray-700/50 p-4 rounded-lg border border-gray-600/50 hover:border-blue-500/50 transition-colors">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-blue-400">Amount:</span>
+                                    <span class="text-white font-mono">${tx.amount}</span>
+                                </div>
+                                <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">Pending</span>
+                            </div>
+                            <div class="mt-2 space-y-1">
+                                <div class="text-sm">
+                                    <span class="text-gray-400">From:</span>
+                                    <span class="text-gray-300 font-mono">${tx.sender}</span>
+                                </div>
+                                <div class="text-sm">
+                                    <span class="text-gray-400">To:</span>
+                                    <span class="text-gray-300 font-mono">${tx.recipient}</span>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    <span>Transaction ID:</span>
+                                    <span class="font-mono">${tx.transactionId || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error fetching blockchain:', error);
+                    const blockchainVisual = document.getElementById('blockchainVisual');
+                    blockchainVisual.innerHTML = `
+                        <div class="text-center py-12">
+                            <div class="text-red-400">Error loading blockchain data</div>
+                            <div class="text-sm text-gray-400 mt-2">Please try refreshing the page</div>
+                        </div>
+                    `;
+                });
+        }
+
+        document.getElementById('transactionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const transaction = {
+                amount: document.getElementById('amount').value,
+                sender: document.getElementById('sender').value,
+                recipient: document.getElementById('recipient').value
+            };
+
+            fetch('/transaction/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(transaction)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.note);
+                updateBlockchain();
+                e.target.reset();
+            });
+        });
+
+        // Initial blockchain data load
+        updateBlockchain();
+        
+        // Refresh blockchain data every 10 seconds
+        setInterval(updateBlockchain, 10000);
+    </script>
+</body>
+</html>
