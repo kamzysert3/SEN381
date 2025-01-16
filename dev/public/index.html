@@ -6,7 +6,7 @@
     <title>Veroin Blockchain Interface</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        ::-webkit-scrollbar{
+        ::-webkit-scrollbar, ::-webkit-inner-spin-button{
             display: none;
         }
         .transaction-item {
@@ -68,6 +68,41 @@
             background: rgba(31, 41, 55, 0.5);
             backdrop-filter: blur(10px);
         }
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #22c55e;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .mining-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mining-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: #22c55e;
+            transition: width 0.2s ease;
+        }
+
+        .mining-button.mining::after {
+            width: 100%;
+            transition: width 30s linear;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white min-h-screen">
@@ -79,6 +114,25 @@
         </header>
 
         <div class="content-container space-y-8">
+            <!-- Blockchain Explorer -->
+            <div class="w-full mb-8">
+                <div class="bg-gray-800/50 backdrop-blur rounded-xl shadow-xl p-6 h-full">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold text-blue-400">Blockchain Explorer</h2>
+                        <span class="text-sm text-gray-400" id="blockCount">Total Blocks: 0</span>
+                    </div>
+                    <div id="blockchainVisual" class="space-y-4 overflow-y-auto h-full pr-2">
+                        <!-- Empty state -->
+                        <div id="emptyState" class="text-center py-12">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-400">No blocks found</h3>
+                            <p class="mt-1 text-sm text-gray-500">Start by creating a transaction or mining a block.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Upper Section -->
             <div class="flex flex-col lg:flex-row gap-8 mb-8">
                 <!-- Transaction Form -->
@@ -112,45 +166,31 @@
                     </div>
                 </div>
 
-                <!-- Blockchain Explorer -->
+                <!-- Pending Transactions -->
                 <div class="lg:w-1/2">
                     <div class="bg-gray-800/50 backdrop-blur rounded-xl shadow-xl p-6 h-full">
                         <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-semibold text-blue-400">Blockchain Explorer</h2>
-                            <span class="text-sm text-gray-400" id="blockCount">Total Blocks: 0</span>
+                            <h2 class="text-2xl font-semibold text-blue-400">Pending Transactions</h2>
+                            <span id="pendingCount" class="text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">0 Pending</span>
                         </div>
-                        <div id="blockchainVisual" class="space-y-4 overflow-y-auto h-full pr-2">
-                            <!-- Empty state -->
-                            <div id="emptyState" class="text-center py-12">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        <div id="pendingTransactions" class="space-y-4 max-h-[350px] overflow-y-auto pr-2">
+                            <!-- Empty state for pending transactions -->
+                            <div id="emptyPending" class="text-center py-8">
+                                <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-400">No blocks found</h3>
-                                <p class="mt-1 text-sm text-gray-500">Start by creating a transaction or mining a block.</p>
+                                <p class="mt-2 text-sm text-gray-400">No pending transactions</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Pending Transactions -->
-            <div class="w-full mb-8">
-                <div class="bg-gray-800/50 backdrop-blur rounded-xl shadow-xl p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-semibold text-blue-400">Pending Transactions</h2>
-                        <span id="pendingCount" class="text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">0 Pending</span>
-                    </div>
-                    <div id="pendingTransactions" class="space-y-4">
-                        <!-- Empty state for pending transactions -->
-                        <div id="emptyPending" class="text-center py-8">
-                            <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p class="mt-2 text-sm text-gray-400">No pending transactions</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <button id="mineButton" 
+                class="mining-button w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <span class="button-text">Start Mining</span>
+                <span class="loader hidden"></span>
+            </button>
     </div>
 
     <script>
@@ -174,27 +214,33 @@
                     }
                     
                     // Add blocks in reverse order (newest first)
-                    data.chain.slice().reverse().forEach((block, index) => {
+                    data.chain.slice().reverse().slice(0, 2).forEach((block, index) => {
                         const blockElement = document.createElement('div');
                         blockElement.className = 'bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer mb-4 border border-gray-600';
                         
                         const transactions = block.transactions || [];
-                        const transactionsList = transactions.map(tx => `
+                        const transactionsList = `
                             <div class="border-t border-gray-600 mt-2 pt-2">
                                 <div class="text-xs">
                                     <span class="text-blue-400">Amount:</span> 
-                                    <span class="text-gray-300">${tx.amount}</span>
+                                    <span class="text-gray-300">${transactions[0]?.amount || 'N/A'}</span>
                                 </div>
                                 <div class="text-xs truncate">
                                     <span class="text-blue-400">From:</span> 
-                                    <span class="text-gray-300">${tx.sender || 'N/A'}</span>
+                                    <span class="text-gray-300">${transactions[0]?.sender || 'N/A'}</span>
                                 </div>
                                 <div class="text-xs truncate">
                                     <span class="text-blue-400">To:</span> 
-                                    <span class="text-gray-300">${tx.recipient || 'N/A'}</span>
+                                    <span class="text-gray-300">${transactions[0]?.recipient || 'N/A'}</span>
                                 </div>
+                                ${transactions.length > 1 ? `
+                                    <button onclick="showAllTransactions(${block.index}, ${JSON.stringify(transactions).replace(/"/g, '&quot;')})" 
+                                        class="mt-2 text-xs text-blue-400 hover:text-blue-500 transition-colors">
+                                        Show ${transactions.length - 1} more transactions →
+                                    </button>
+                                ` : ''}
                             </div>
-                        `).join('');
+                        `;
 
                         blockElement.innerHTML = `
                             <div class="flex justify-between items-start">
@@ -276,6 +322,50 @@
                 });
         }
 
+        function showAllTransactions(blockIndex, transactions) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center p-4';
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-blue-400">All Transactions - Block #${blockIndex}</h3>
+                        <button onclick="this.closest('.fixed').remove()" 
+                            class="text-gray-400 hover:text-white">
+                            ✕
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        ${transactions.map(tx => `
+                            <div class="border border-gray-700 rounded p-3">
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                        <span class="text-blue-400">Amount:</span>
+                                        <span class="text-gray-300">${tx.amount}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-blue-400">ID:</span>
+                                        <span class="text-gray-300 font-mono text-xs">${tx.transactionId || 'N/A'}</span>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <span class="text-blue-400">From:</span>
+                                        <span class="text-gray-300 font-mono text-xs">${tx.sender}</span>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <span class="text-blue-400">To:</span>
+                                        <span class="text-gray-300 font-mono text-xs">${tx.recipient}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
         document.getElementById('transactionForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const transaction = {
@@ -295,6 +385,38 @@
                 updateBlockchain();
                 e.target.reset();
             });
+        });
+
+        document.getElementById('mineButton').addEventListener('click', function() {
+            if (isMining) return;
+            
+            const button = this;
+            const buttonText = button.querySelector('.button-text');
+            const loader = button.querySelector('.loader');
+            
+            isMining = true;
+            button.disabled = true;
+            button.classList.add('mining');
+            buttonText.textContent = 'Mining in Progress';
+            loader.classList.remove('hidden');
+
+            fetch('/mine')
+                .then(response => response.json())
+                .then(data => {
+                    isMining = false;
+                    button.disabled = false;
+                    button.classList.remove('mining');
+                    buttonText.textContent = 'Start Mining';
+                    loader.classList.add('hidden');
+                    updateBlockchain();
+                })
+                .catch(error => {
+                    isMining = false;
+                    button.disabled = false;
+                    button.classList.remove('mining');
+                    buttonText.textContent = 'Start Mining';
+                    loader.classList.add('hidden');
+                });
         });
 
         // Initial blockchain data load

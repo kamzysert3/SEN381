@@ -84,43 +84,6 @@ app.get('/mine', function (req, res) {
 
 });
 
-app.get('/mine-progress', function(req, res) {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    const lastBlock = raymond.getLastBlock();
-    const previousBlockHash = lastBlock['hash'];
-    const currentBlockData = {
-        transactions: raymond.pendingTransactions,
-        index: lastBlock['index'] + 1
-    };
-
-    // Set up the callback to send hash attempts to client
-    raymond.onHashGenerated = (hash, nonce) => {
-        res.write(`data: ${JSON.stringify({
-            hash: hash,
-            nonce: nonce,
-            attempts: nonce + 1,
-            found: hash.substring(0, 4) === '0000'
-        })}\n\n`);
-
-        if (hash.substring(0, 4) === '0000') {
-            raymond.onHashGenerated = null; // Clean up callback
-            const newBlock = raymond.createNewBlock(nonce, previousBlockHash, hash);
-            raymond.createNewTransaction(12.5, "00", "MINER-REWARD");
-            res.end();
-        }
-    };
-
-    req.on('close', () => {
-        raymond.onHashGenerated = null; // Clean up callback if client disconnects
-    });
-
-    // Start the mining process
-    raymond.proofOfWork(previousBlockHash, currentBlockData);
-});
-
 app.post('/register-and-broadcast-node',function(req,res){
     const newNodeUrl = req.body.NewNodeUrl;
     if(raymond.networkNodes.indexOf(newNodeUrl)== -1)
@@ -177,6 +140,6 @@ app.post('/register-node-bulk',function (req,res){
 });
 
 app.listen(port, function () {
-    console.log(`Listening on port ${port}`);
+    console.log(`Listening on port http://localhost:${port}/`);
 });
 
